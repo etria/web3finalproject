@@ -36,7 +36,21 @@ namespace GameStoreDB1.Controllers
             }
             return View(game);
         }
+        public PartialViewResult _Items(int id)
+        {
+            Game game = db.Games.Find(id);
+            var items = game.Items;
+            
+            return PartialView("_Itmes", items);
+        }
 
+        [HttpPost]
+        public ActionResult DetailItems(int id)
+        {
+            var item = db.Games.Include(g => g.Items).Where(g => g.GameId == id);
+            //var items = db.Items.Where(i => itemIds.Contains(i.ItemId));
+            return PartialView("_Items");
+        }
 
         // GET: Games/Create
         public ActionResult Create()
@@ -119,6 +133,34 @@ namespace GameStoreDB1.Controllers
             return View(game);
         }
 
+        public ActionResult _FilterSystem()
+        {
+            return PartialView("_FilterSystem");
+        }
+        public ActionResult _Games()
+        {
+            var games = db.Games.Include(g => g.GameSystem).Where(g => g.GameId == null);
+            //var games = db.Games.Include(g => g.GameSystem).Where(g => g.GameId == null);
+            return PartialView("_Games", games);
+        }
+        [HttpPost]
+        public ActionResult Systems()
+        {
+            var filters = db.GameSystems;
+            return PartialView("_FilterSystem", filters);
+        }
+       [HttpPost]
+        public ActionResult Filter(string filterText, int[] selected)
+        {
+            var selectedgames = db.Games.Include(g => g.GameSystem).Where(g => g.GameSystem.SystemId== null);
+            var filteredgames = db.Games.Include(g => g.GameSystem).Where(g => g.Title.Contains(filterText));
+
+            if (selected != null)
+            {
+                selectedgames = db.Games.Include(g => g.GameSystem).Where(g => selected.Contains(g.GameSystem.SystemId));
+            }
+            return PartialView("_Games", filteredgames.Except(selectedgames));
+        }
         // POST: Games/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
